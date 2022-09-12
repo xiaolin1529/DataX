@@ -95,11 +95,12 @@ public class HdfsWriter extends Writer {
             if(null == fieldDelimiter){
                 throw DataXException.asDataXException(HdfsWriterErrorCode.REQUIRED_VALUE,
                         String.format("您提供配置文件有误，[%s]是必填参数.", Key.FIELD_DELIMITER));
-            }else if(1 != fieldDelimiter.length()){
-                // warn: if have, length must be one
-                throw DataXException.asDataXException(HdfsWriterErrorCode.ILLEGAL_VALUE,
-                        String.format("仅仅支持单字符切分, 您配置的切分为 : [%s]", fieldDelimiter));
             }
+//            else if(1 != fieldDelimiter.length()){
+//                // warn: if have, length must be one
+//                throw DataXException.asDataXException(HdfsWriterErrorCode.ILLEGAL_VALUE,
+//                        String.format("仅仅支持单字符切分, 您配置的切分为 : [%s]", fieldDelimiter));
+//            }
             //compress check
             this.compress  = this.writerSliceConfig.getString(Key.COMPRESS,null);
             if(fileType.equalsIgnoreCase("TEXT")){

@@ -8,7 +8,7 @@ import com.alibaba.datax.common.util.Configuration;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.csvreader.MyCsvReader;
+import com.csvreader.CsvReader;
 import io.airlift.compress.snappy.SnappyCodec;
 import io.airlift.compress.snappy.SnappyFramedInputStream;
 import org.anarres.lzo.LzoDecompressor1x_safe;
@@ -29,12 +29,12 @@ import java.nio.charset.UnsupportedCharsetException;
 import java.text.DateFormat;
 import java.util.*;
 
-public class UnstructuredStorageReaderUtil {
+public class UnstructuredStorageReaderUtil1 {
 	private static final Logger LOG = LoggerFactory
-			.getLogger(UnstructuredStorageReaderUtil.class);
+			.getLogger(UnstructuredStorageReaderUtil1.class);
 	public static HashMap<String, Object> csvReaderConfigMap;
 
-	private UnstructuredStorageReaderUtil() {
+	private UnstructuredStorageReaderUtil1() {
 
 	}
 
@@ -49,10 +49,9 @@ public class UnstructuredStorageReaderUtil {
 		String[] splitedResult = null;
 		if (null != inputLine) {
 			try {
-//				CsvReader csvReader = new CsvReader(new StringReader(inputLine));
-//				csvReader.setDelimiter(delimiter);
-				MyCsvReader csvReader = new MyCsvReader(new StringReader(inputLine));
-				csvReader.setDelimiter(String.valueOf(delimiter));
+				CsvReader csvReader = new CsvReader(new StringReader(inputLine));
+				csvReader.setDelimiter(delimiter);
+
 				setCsvReaderConfig(csvReader);
 
 				if (csvReader.readRecord()) {
@@ -65,7 +64,7 @@ public class UnstructuredStorageReaderUtil {
 		return splitedResult;
 	}
 
-	public static String[] splitBufferedReader(MyCsvReader csvReader)
+	public static String[] splitBufferedReader(CsvReader csvReader)
 			throws IOException {
 		String[] splitedResult = null;
 		if (csvReader.readRecord()) {
@@ -210,7 +209,7 @@ public class UnstructuredStorageReaderUtil {
 											"文件压缩格式 , 不支持您配置的文件压缩格式: [%s]", compress));
 				}
 			}
-			UnstructuredStorageReaderUtil.doReadFromStream(reader, context,
+			UnstructuredStorageReaderUtil1.doReadFromStream(reader, context,
 					readerSliceConfig, recordSender, taskPluginCollector);
 		} catch (UnsupportedEncodingException uee) {
 			throw DataXException
@@ -240,15 +239,14 @@ public class UnstructuredStorageReaderUtil {
 										TaskPluginCollector taskPluginCollector) {
 		String encoding = readerSliceConfig.getString(Key.ENCODING,
 				Constant.DEFAULT_ENCODING);
-//		Character fieldDelimiter = null;
+		Character fieldDelimiter = null;
 		String delimiterInStr = readerSliceConfig
 				.getString(Key.FIELD_DELIMITER);
-		LOG.debug("字段分隔符：",delimiterInStr);
-//		if (null != delimiterInStr && 1 != delimiterInStr.length()) {
-//			throw DataXException.asDataXException(
-//					UnstructuredStorageReaderErrorCode.ILLEGAL_VALUE,
-//					String.format("仅仅支持单字符切分, 您配置的切分为 : [%s]", delimiterInStr));
-//		}
+		if (null != delimiterInStr && 1 != delimiterInStr.length()) {
+			throw DataXException.asDataXException(
+					UnstructuredStorageReaderErrorCode.ILLEGAL_VALUE,
+					String.format("仅仅支持单字符切分, 您配置的切分为 : [%s]", delimiterInStr));
+		}
 		if (null == delimiterInStr) {
 			LOG.warn(String.format("您没有配置列分隔符, 使用默认值[%s]",
 					Constant.DEFAULT_FIELD_DELIMITER));
@@ -256,8 +254,8 @@ public class UnstructuredStorageReaderUtil {
 
 		// warn: default value ',', fieldDelimiter could be \n(lineDelimiter)
 		// for no fieldDelimiter
-//		fieldDelimiter = readerSliceConfig.getChar(Key.FIELD_DELIMITER,
-//				Constant.DEFAULT_FIELD_DELIMITER);
+		fieldDelimiter = readerSliceConfig.getChar(Key.FIELD_DELIMITER,
+				Constant.DEFAULT_FIELD_DELIMITER);
 		Boolean skipHeader = readerSliceConfig.getBool(Key.SKIP_HEADER,
 				Constant.DEFAULT_SKIP_HEADER);
 		// warn: no default value '\N'
@@ -266,9 +264,9 @@ public class UnstructuredStorageReaderUtil {
 		// warn: Configuration -> List<ColumnEntry> for performance
 		// List<Configuration> column = readerSliceConfig
 		// .getListConfiguration(Key.COLUMN);
-		List<ColumnEntry> column = UnstructuredStorageReaderUtil
+		List<ColumnEntry> column = UnstructuredStorageReaderUtil1
 				.getListColumnEntry(readerSliceConfig, Key.COLUMN);
-		MyCsvReader csvReader  = null;
+		CsvReader csvReader  = null;
 
 		// every line logic
 		try {
@@ -278,15 +276,15 @@ public class UnstructuredStorageReaderUtil {
 				LOG.info(String.format("Header line %s has been skiped.",
 						fetchLine));
 			}
-			csvReader = new MyCsvReader(reader);
-			csvReader.setDelimiter(delimiterInStr);
+			csvReader = new CsvReader(reader);
+			csvReader.setDelimiter(fieldDelimiter);
 
 			setCsvReaderConfig(csvReader);
 
 			String[] parseRows;
-			while ((parseRows = UnstructuredStorageReaderUtil
+			while ((parseRows = UnstructuredStorageReaderUtil1
 					.splitBufferedReader(csvReader)) != null) {
-				UnstructuredStorageReaderUtil.transportOneRecord(recordSender,
+				UnstructuredStorageReaderUtil1.transportOneRecord(recordSender,
 						column, parseRows, nullFormat, taskPluginCollector);
 			}
 		} catch (UnsupportedEncodingException uee) {
@@ -316,16 +314,16 @@ public class UnstructuredStorageReaderUtil {
 											Configuration configuration,
 											TaskPluginCollector taskPluginCollector,
 											String line){
-		List<ColumnEntry> column = UnstructuredStorageReaderUtil
+		List<ColumnEntry> column = UnstructuredStorageReaderUtil1
 				.getListColumnEntry(configuration, Key.COLUMN);
 		// 注意: nullFormat 没有默认值
 		String nullFormat = configuration.getString(Key.NULL_FORMAT);
 		String delimiterInStr = configuration.getString(Key.FIELD_DELIMITER);
-//		if (null != delimiterInStr && 1 != delimiterInStr.length()) {
-//			throw DataXException.asDataXException(
-//					UnstructuredStorageReaderErrorCode.ILLEGAL_VALUE,
-//					String.format("仅仅支持单字符切分, 您配置的切分为 : [%s]", delimiterInStr));
-//		}
+		if (null != delimiterInStr && 1 != delimiterInStr.length()) {
+			throw DataXException.asDataXException(
+					UnstructuredStorageReaderErrorCode.ILLEGAL_VALUE,
+					String.format("仅仅支持单字符切分, 您配置的切分为 : [%s]", delimiterInStr));
+		}
 		if (null == delimiterInStr) {
 			LOG.warn(String.format("您没有配置列分隔符, 使用默认值[%s]",
 					Constant.DEFAULT_FIELD_DELIMITER));
@@ -532,8 +530,8 @@ public class UnstructuredStorageReaderUtil {
 		// encoding check
 		String encoding = readerConfiguration
 				.getString(
-						com.alibaba.datax.plugin.unstructuredstorage.reader.Key.ENCODING,
-						com.alibaba.datax.plugin.unstructuredstorage.reader.Constant.DEFAULT_ENCODING);
+						Key.ENCODING,
+						Constant.DEFAULT_ENCODING);
 		try {
 			encoding = encoding.trim();
 			readerConfiguration.set(Key.ENCODING, encoding);
@@ -549,7 +547,7 @@ public class UnstructuredStorageReaderUtil {
 
 	public static void validateCompress(Configuration readerConfiguration) {
 		String compress =readerConfiguration
-				.getUnnecessaryValue(com.alibaba.datax.plugin.unstructuredstorage.reader.Key.COMPRESS,null,null);
+				.getUnnecessaryValue(Key.COMPRESS,null,null);
 		if(StringUtils.isNotBlank(compress)){
 			compress = compress.toLowerCase().trim();
 			boolean compressTag = "gzip".equals(compress) || "bzip2".equals(compress) || "zip".equals(compress)
@@ -564,30 +562,29 @@ public class UnstructuredStorageReaderUtil {
 			// 用户可能配置的是 compress:"",空字符串,需要将compress设置为null
 			compress = null;
 		}
-		readerConfiguration.set(com.alibaba.datax.plugin.unstructuredstorage.reader.Key.COMPRESS, compress);
+		readerConfiguration.set(Key.COMPRESS, compress);
 
 	}
 
 	public static void validateFieldDelimiter(Configuration readerConfiguration) {
 		//fieldDelimiter check
-		String delimiterInStr = readerConfiguration.getString(com.alibaba.datax.plugin.unstructuredstorage.reader.Key.FIELD_DELIMITER,null);
+		String delimiterInStr = readerConfiguration.getString(Key.FIELD_DELIMITER,null);
 		if(null == delimiterInStr){
 			throw DataXException.asDataXException(UnstructuredStorageReaderErrorCode.REQUIRED_VALUE,
 					String.format("您提供配置文件有误，[%s]是必填参数.",
-							com.alibaba.datax.plugin.unstructuredstorage.reader.Key.FIELD_DELIMITER));
+							Key.FIELD_DELIMITER));
+		}else if(1 != delimiterInStr.length()){
+			// warn: if have, length must be one
+			throw DataXException.asDataXException(UnstructuredStorageReaderErrorCode.ILLEGAL_VALUE,
+					String.format("仅仅支持单字符切分, 您配置的切分为 : [%s]", delimiterInStr));
 		}
-//		else if(1 != delimiterInStr.length()){
-//			// warn: if have, length must be one
-//			throw DataXException.asDataXException(UnstructuredStorageReaderErrorCode.ILLEGAL_VALUE,
-//					String.format("仅仅支持单字符切分, 您配置的切分为 : [%s]", delimiterInStr));
-//		}
 	}
 
 	public static void validateColumn(Configuration readerConfiguration) {
 		// column: 1. index type 2.value type 3.when type is Date, may have
 		// format
 		List<Configuration> columns = readerConfiguration
-				.getListConfiguration(com.alibaba.datax.plugin.unstructuredstorage.reader.Key.COLUMN);
+				.getListConfiguration(Key.COLUMN);
 		if (null == columns || columns.size() == 0) {
 			throw DataXException.asDataXException(UnstructuredStorageReaderErrorCode.REQUIRED_VALUE, "您需要指定 columns");
 		}
@@ -595,19 +592,19 @@ public class UnstructuredStorageReaderUtil {
 		if (null != columns && 1 == columns.size()) {
 			String columnsInStr = columns.get(0).toString();
 			if ("\"*\"".equals(columnsInStr) || "'*'".equals(columnsInStr)) {
-				readerConfiguration.set(com.alibaba.datax.plugin.unstructuredstorage.reader.Key.COLUMN, null);
+				readerConfiguration.set(Key.COLUMN, null);
 				columns = null;
 			}
 		}
 
 		if (null != columns && columns.size() != 0) {
 			for (Configuration eachColumnConf : columns) {
-				eachColumnConf.getNecessaryValue(com.alibaba.datax.plugin.unstructuredstorage.reader.Key.TYPE,
+				eachColumnConf.getNecessaryValue(Key.TYPE,
 						UnstructuredStorageReaderErrorCode.REQUIRED_VALUE);
 				Integer columnIndex = eachColumnConf
-						.getInt(com.alibaba.datax.plugin.unstructuredstorage.reader.Key.INDEX);
+						.getInt(Key.INDEX);
 				String columnValue = eachColumnConf
-						.getString(com.alibaba.datax.plugin.unstructuredstorage.reader.Key.VALUE);
+						.getString(Key.VALUE);
 
 				if (null == columnIndex && null == columnValue) {
 					throw DataXException.asDataXException(UnstructuredStorageReaderErrorCode.NO_INDEX_VALUE,
@@ -630,7 +627,7 @@ public class UnstructuredStorageReaderUtil {
 		String  csvReaderConfig = readerConfiguration.getString(Key.CSV_READER_CONFIG);
 		if(StringUtils.isNotBlank(csvReaderConfig)){
 			try{
-				UnstructuredStorageReaderUtil.csvReaderConfigMap = JSON.parseObject(csvReaderConfig, new TypeReference<HashMap<String, Object>>() {});
+				UnstructuredStorageReaderUtil1.csvReaderConfigMap = JSON.parseObject(csvReaderConfig, new TypeReference<HashMap<String, Object>>() {});
 			}catch (Exception e) {
 				LOG.info(String.format("WARN!!!!忽略csvReaderConfig配置! 配置错误,值只能为空或者为Map结构,您配置的值为: %s", csvReaderConfig));
 			}
@@ -681,19 +678,19 @@ public class UnstructuredStorageReaderUtil {
 		return parentPath;
 	}
 
-	public static void setCsvReaderConfig(MyCsvReader csvReader){
-		if(null != UnstructuredStorageReaderUtil.csvReaderConfigMap && !UnstructuredStorageReaderUtil.csvReaderConfigMap.isEmpty()){
+	public static void setCsvReaderConfig(CsvReader csvReader){
+		if(null != UnstructuredStorageReaderUtil1.csvReaderConfigMap && !UnstructuredStorageReaderUtil1.csvReaderConfigMap.isEmpty()){
 			try {
-				BeanUtils.populate(csvReader,UnstructuredStorageReaderUtil.csvReaderConfigMap);
+				BeanUtils.populate(csvReader, UnstructuredStorageReaderUtil1.csvReaderConfigMap);
 				LOG.info(String.format("csvReaderConfig设置成功,设置后CsvReader:%s", JSON.toJSONString(csvReader)));
 			} catch (Exception e) {
 				LOG.info(String.format("WARN!!!!忽略csvReaderConfig配置!通过BeanUtils.populate配置您的csvReaderConfig发生异常,您配置的值为: %s;请检查您的配置!CsvReader使用默认值[%s]",
-						JSON.toJSONString(UnstructuredStorageReaderUtil.csvReaderConfigMap),JSON.toJSONString(csvReader)));
+						JSON.toJSONString(UnstructuredStorageReaderUtil1.csvReaderConfigMap),JSON.toJSONString(csvReader)));
 			}
 		}else {
 			//默认关闭安全模式, 放开10W字节的限制
 			csvReader.setSafetySwitch(false);
-			LOG.info(String.format("CsvReader使用默认值[%s],csvReaderConfig值为[%s]",JSON.toJSONString(csvReader),JSON.toJSONString(UnstructuredStorageReaderUtil.csvReaderConfigMap)));
+			LOG.info(String.format("CsvReader使用默认值[%s],csvReaderConfig值为[%s]",JSON.toJSONString(csvReader),JSON.toJSONString(UnstructuredStorageReaderUtil1.csvReaderConfigMap)));
 		}
 	}
 

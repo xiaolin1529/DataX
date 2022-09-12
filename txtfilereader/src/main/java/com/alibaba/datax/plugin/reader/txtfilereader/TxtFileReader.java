@@ -4,10 +4,8 @@ import com.alibaba.datax.common.exception.DataXException;
 import com.alibaba.datax.common.plugin.RecordSender;
 import com.alibaba.datax.common.spi.Reader;
 import com.alibaba.datax.common.util.Configuration;
-import com.alibaba.datax.plugin.unstructuredstorage.reader.UnstructuredStorageReaderErrorCode;
 import com.alibaba.datax.plugin.unstructuredstorage.reader.UnstructuredStorageReaderUtil;
 import com.google.common.collect.Sets;
-
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -20,13 +18,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -172,15 +164,15 @@ public class TxtFileReader extends Reader {
 								compress);
 			}
 
-			String delimiterInStr = this.originConfig
-					.getString(com.alibaba.datax.plugin.unstructuredstorage.reader.Key.FIELD_DELIMITER);
+//			String delimiterInStr = this.originConfig
+//					.getString(com.alibaba.datax.plugin.unstructuredstorage.reader.Key.FIELD_DELIMITER);
 			// warn: if have, length must be one
-			if (null != delimiterInStr && 1 != delimiterInStr.length()) {
-				throw DataXException.asDataXException(
-						UnstructuredStorageReaderErrorCode.ILLEGAL_VALUE,
-						String.format("仅仅支持单字符切分, 您配置的切分为 : [%s]",
-								delimiterInStr));
-			}
+//			if (null != delimiterInStr && 1 != delimiterInStr.length()) {
+//				throw DataXException.asDataXException(
+//						UnstructuredStorageReaderErrorCode.ILLEGAL_VALUE,
+//						String.format("仅仅支持单字符切分, 您配置的切分为 : [%s]",
+//								delimiterInStr));
+//			}
 
 		}
 

@@ -22,6 +22,8 @@ public enum DataBaseType {
     ClickHouse("clickhouse", "ru.yandex.clickhouse.ClickHouseDriver"),
     KingbaseES("kingbasees", "com.kingbase8.Driver"),
     Oscar("oscar", "com.oscar.Driver"),
+
+    Teradata("teradata", "com.teradata.jdbc.TeraDriver"),
     OceanBase("oceanbase", "com.alipay.oceanbase.jdbc.Driver");
 
 
