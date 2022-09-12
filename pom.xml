@@ -119,6 +119,10 @@
         <!-- common support module -->
         <module>plugin-rdbms-util</module>
         <module>plugin-unstructured-storage-util</module>
+
+        <module>s3common</module>
+        <module>s3reader</module>
+        <module>s3writer</module>
     </modules>
 
     <dependencyManagement>

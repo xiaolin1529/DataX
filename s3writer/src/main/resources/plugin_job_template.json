@@ -1,0 +1,14 @@
+{
+    "name": "s3writer",
+    "parameter": {
+        "accessKey": "",
+        "secretKey": "",
+        "endPoint": "",
+        "region": "",
+        "bucket": "",
+        "object": "",
+        "encoding": "",
+        "fieldDelimiter": "",
+        "writeMode": ""
+    }
+}
